@@ -1,1 +1,341 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Castle Chaos</title>
 
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #111827;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+#game {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.top {
+    height: 12%;
+    background: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.battle {
+    height: 58%;
+    position: relative;
+    background: linear-gradient(#87ceeb 0%, #c7f0ff 60%, #65a30d 60%);
+    overflow: hidden;
+}
+
+.castle {
+    position: absolute;
+    bottom: 15%;
+    width: 110px;
+    height: 150px;
+    background: #9ca3af;
+    border: 5px solid #374151;
+}
+
+.castle::before,
+.castle::after {
+    content: "";
+    position: absolute;
+    top: -45px;
+    width: 35px;
+    height: 45px;
+    background: #6b7280;
+    border: 4px solid #374151;
+}
+
+.castle::before {
+    left: -5px;
+}
+
+.castle::after {
+    right: -5px;
+}
+
+.player {
+    left: 7%;
+}
+
+.enemy {
+    right: 7%;
+}
+
+.hp {
+    position: absolute;
+    top: -25px;
+    left: 0;
+    width: 100%;
+    height: 15px;
+    background: #111;
+    border: 2px solid white;
+}
+
+.hp-fill {
+    width: 100%;
+    height: 100%;
+    background: #22c55e;
+}
+
+.door {
+    position: absolute;
+    bottom: 0;
+    left: 35px;
+    width: 40px;
+    height: 65px;
+    background: #4b2e1e;
+    border-radius: 20px 20px 0 0;
+}
+
+.unit {
+    position: absolute;
+    bottom: 15%;
+    left: 45%;
+    font-size: 42px;
+    display: none;
+}
+
+.controls {
+    height: 30%;
+    background: #111827;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 14px 22px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background: #2563eb;
+}
+
+button:active {
+    transform: scale(.95);
+}
+
+.units {
+    display: flex;
+    gap: 10px;
+}
+
+.units button {
+    background: #374151;
+    min-width: 90px;
+}
+
+#message {
+    font-size: 20px;
+    font-weight: bold;
+    min-height: 25px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <div class="top">
+        <div>🏰 CASTLE CHAOS</div>
+        <div>🪙 <span id="gold">100</span></div>
+    </div>
+
+    <div class="battle">
+
+        <div class="castle player">
+            <div class="hp">
+                <div class="hp-fill" id="playerHP"></div>
+            </div>
+            <div class="door"></div>
+        </div>
+
+        <div class="castle enemy">
+            <div class="hp">
+                <div class="hp-fill" id="enemyHP"></div>
+            </div>
+            <div class="door"></div>
+        </div>
+
+        <div class="unit" id="unit">⚔️</div>
+
+    </div>
+
+    <div class="controls">
+
+        <div id="message">
+            Düşman kalesini yık!
+        </div>
+
+        <div class="units">
+
+            <button onclick="attack('knight')">
+                ⚔️<br>Şövalye
+            </button>
+
+            <button onclick="attack('archer')">
+                🏹<br>Okçu
+            </button>
+
+            <button onclick="attack('giant')">
+                🔨<br>Dev
+            </button>
+
+        </div>
+
+        <button onclick="resetGame()">
+            🔄 Yeni Savaş
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+let enemyHealth = 100;
+let playerHealth = 100;
+let gold = 100;
+let gameOver = false;
+
+function attack(type) {
+
+    if (gameOver) return;
+
+    let damage = 0;
+    let symbol = "⚔️";
+
+    if (type === "knight") {
+        damage = 10;
+        symbol = "⚔️";
+    }
+
+    if (type === "archer") {
+        damage = 7;
+        symbol = "🏹";
+    }
+
+    if (type === "giant") {
+        damage = 20;
+        symbol = "🔨";
+    }
+
+    const unit = document.getElementById("unit");
+
+    unit.innerText = symbol;
+    unit.style.display = "block";
+
+    let position = 45;
+
+    const move = setInterval(() => {
+
+        position += 3;
+        unit.style.left = position + "%";
+
+        if (position >= 78) {
+
+            clearInterval(move);
+
+            enemyHealth -= damage;
+
+            if (enemyHealth < 0) {
+                enemyHealth = 0;
+            }
+
+            updateHealth();
+
+            unit.style.display = "none";
+
+            if (enemyHealth <= 0) {
+
+                gameOver = true;
+                gold += 50;
+
+                document.getElementById("gold").innerText = gold;
+                document.getElementById("message").innerText =
+                    "🏆 ZAFER! +50 Altın";
+
+            } else {
+
+                enemyAttack();
+            }
+
+        }
+
+    }, 40);
+}
+
+function enemyAttack() {
+
+    setTimeout(() => {
+
+        if (gameOver) return;
+
+        playerHealth -= 8;
+
+        if (playerHealth < 0) {
+            playerHealth = 0;
+        }
+
+        updateHealth();
+
+        if (playerHealth <= 0) {
+
+            gameOver = true;
+
+            document.getElementById("message").innerText =
+                "💀 KALE YIKILDI!";
+
+        }
+
+    }, 700);
+}
+
+function updateHealth() {
+
+    document.getElementById("enemyHP").style.width =
+        enemyHealth + "%";
+
+    document.getElementById("playerHP").style.width =
+        playerHealth + "%";
+}
+
+function resetGame() {
+
+    enemyHealth = 100;
+    playerHealth = 100;
+    gameOver = false;
+
+    document.getElementById("message").innerText =
+        "Düşman kalesini yık!";
+
+    updateHealth();
+}
+
+</script>
+
+</body>
+</html>
