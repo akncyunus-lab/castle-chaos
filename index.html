@@ -2,30 +2,36 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+
 <meta name="viewport"
-content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+content="width=device-width,
+initial-scale=1,
+maximum-scale=1,
+user-scalable=no">
 
 <title>Castle Chaos 3D</title>
 
 <style>
+
 *{
     box-sizing:border-box;
     margin:0;
     padding:0;
 }
 
-html,body{
+html,
+body{
     width:100%;
     height:100%;
     overflow:hidden;
-    background:#111;
+    background:#87ceeb;
     font-family:Arial,sans-serif;
 }
 
 #game{
-    position:relative;
-    width:100%;
-    height:100%;
+    position:fixed;
+    inset:0;
+    overflow:hidden;
 }
 
 #scene{
@@ -37,78 +43,195 @@ canvas{
     display:block;
 }
 
-.ui{
+
+/* =========================
+   ÜST PANEL
+========================= */
+
+.topbar{
+
     position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    padding:12px;
+
+    top:12px;
+    left:12px;
+    right:12px;
+
     display:flex;
     justify-content:space-between;
     align-items:center;
+
+    z-index:10;
+
     pointer-events:none;
 }
 
 .logo{
-    padding:10px 14px;
-    border-radius:14px;
-    background:rgba(15,23,42,.82);
+
+    background:rgba(15,23,42,.90);
+
     color:white;
+
+    padding:12px 16px;
+
+    border-radius:16px;
+
     font-size:18px;
+
     font-weight:900;
+
+    box-shadow:
+    0 5px 12px rgba(0,0,0,.25);
 }
 
 .gold{
-    padding:10px 14px;
-    border-radius:14px;
-    background:rgba(15,23,42,.82);
+
+    background:rgba(15,23,42,.90);
+
     color:white;
+
+    padding:12px 16px;
+
+    border-radius:16px;
+
+    font-size:17px;
+
     font-weight:bold;
+
+    box-shadow:
+    0 5px 12px rgba(0,0,0,.25);
 }
+
+
+/* =========================
+   MESAJ
+========================= */
+
+#message{
+
+    position:absolute;
+
+    top:78px;
+    left:50%;
+
+    transform:translateX(-50%);
+
+    z-index:10;
+
+    background:rgba(15,23,42,.85);
+
+    color:white;
+
+    padding:10px 18px;
+
+    border-radius:22px;
+
+    font-weight:bold;
+
+    font-size:15px;
+
+    white-space:nowrap;
+
+    box-shadow:
+    0 5px 12px rgba(0,0,0,.2);
+
+    pointer-events:none;
+}
+
+
+/* =========================
+   KONTROLLER
+========================= */
 
 .controls{
+
     position:absolute;
-    bottom:15px;
-    left:0;
-    width:100%;
+
+    bottom:16px;
+
+    left:10px;
+    right:10px;
+
     display:flex;
+
     justify-content:center;
-    gap:10px;
-    padding:0 10px;
+
+    gap:8px;
+
+    z-index:20;
 }
 
-button{
-    border:2px solid rgba(255,255,255,.25);
-    border-radius:16px;
-    background:rgba(20,30,50,.92);
+.unitButton{
+
+    flex:1;
+
+    max-width:125px;
+
+    min-height:68px;
+
+    border:2px solid
+    rgba(255,255,255,.18);
+
+    border-radius:18px;
+
+    background:
+    linear-gradient(
+        180deg,
+        #374151,
+        #1f2937
+    );
+
     color:white;
-    padding:12px 14px;
-    min-width:95px;
+
     font-size:15px;
-    font-weight:bold;
-    box-shadow:0 5px 0 rgba(0,0,0,.35);
+
+    font-weight:900;
+
+    box-shadow:
+    0 6px 0 #111827,
+    0 8px 15px rgba(0,0,0,.25);
+
+    cursor:pointer;
 }
 
-button:active{
-    transform:translateY(4px);
-    box-shadow:0 1px 0 rgba(0,0,0,.35);
+.unitButton:active{
+
+    transform:translateY(5px);
+
+    box-shadow:
+    0 1px 0 #111827;
 }
 
-.message{
+
+/* =========================
+   CANVAS ÜSTÜ YAZILAR
+========================= */
+
+.castleLabel{
+
     position:absolute;
-    top:72px;
-    left:50%;
-    transform:translateX(-50%);
-    padding:9px 16px;
-    border-radius:20px;
-    background:rgba(15,23,42,.75);
+
+    z-index:8;
+
     color:white;
+
+    background:rgba(0,0,0,.55);
+
+    padding:5px 9px;
+
+    border-radius:10px;
+
+    font-size:12px;
+
     font-weight:bold;
+
     pointer-events:none;
-    white-space:nowrap;
+
+    display:none;
 }
+
 </style>
 </head>
+
 
 <body>
 
@@ -116,58 +239,107 @@ button:active{
 
     <div id="scene"></div>
 
-    <div class="ui">
-        <div class="logo">🏰 CASTLE CHAOS</div>
-        <div class="gold">🪙 <span id="gold">100</span></div>
+
+    <div class="topbar">
+
+        <div class="logo">
+            🏰 CASTLE CHAOS
+        </div>
+
+        <div class="gold">
+            🪙 <span id="gold">100</span>
+        </div>
+
     </div>
 
-    <div class="message" id="message">
+
+    <div id="message">
         Birlik seç ve saldır!
     </div>
 
+
     <div class="controls">
-        <button onclick="sendKnight()">⚔️ ŞÖVALYE</button>
-        <button onclick="sendArcher()">🏹 OKÇU</button>
-        <button onclick="sendGiant()">🔨 DEV</button>
+
+        <button
+            class="unitButton"
+            onclick="sendKnight()">
+
+            ⚔️
+            <br>
+            ŞÖVALYE
+
+        </button>
+
+
+        <button
+            class="unitButton"
+            onclick="sendArcher()">
+
+            🏹
+            <br>
+            OKÇU
+
+        </button>
+
+
+        <button
+            class="unitButton"
+            onclick="sendGiant()">
+
+            🔨
+            <br>
+            DEV
+
+        </button>
+
     </div>
 
 </div>
+
 
 <script type="module">
 
 import * as THREE from
 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
 
-/* =========================
+
+/* =====================================================
    SAHNE
-========================= */
+===================================================== */
 
-const scene = new THREE.Scene();
+const scene =
+    new THREE.Scene();
 
-scene.background = new THREE.Color(0x87ceeb);
+scene.background =
+    new THREE.Color(
+        0x82d3f5
+    );
 
-scene.fog = new THREE.Fog(
-    0x87ceeb,
-    25,
-    90
-);
+scene.fog =
+    new THREE.Fog(
+        0x82d3f5,
+        35,
+        90
+    );
 
 
-/* =========================
+/* =====================================================
    KAMERA
-========================= */
+===================================================== */
 
-const camera = new THREE.PerspectiveCamera(
-    55,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    200
-);
+const camera =
+    new THREE.PerspectiveCamera(
+        52,
+        window.innerWidth /
+        window.innerHeight,
+        .1,
+        150
+    );
 
 camera.position.set(
     0,
-    14,
-    25
+    12,
+    27
 );
 
 camera.lookAt(
@@ -177,17 +349,26 @@ camera.lookAt(
 );
 
 
-/* =========================
+/* =====================================================
    RENDERER
-========================= */
+===================================================== */
 
 const renderer =
     new THREE.WebGLRenderer({
-        antialias:true
+
+        antialias:true,
+
+        powerPreference:
+        "high-performance"
+
     });
 
+
 renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio,2)
+    Math.min(
+        window.devicePixelRatio,
+        1.8
+    )
 );
 
 renderer.setSize(
@@ -195,439 +376,895 @@ renderer.setSize(
     window.innerHeight
 );
 
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled =
+    true;
+
+renderer.shadowMap.type =
+    THREE.PCFSoftShadowMap;
+
+renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
 
 document
-    .getElementById("scene")
-    .appendChild(renderer.domElement);
+.getElementById("scene")
+.appendChild(
+    renderer.domElement
+);
 
 
-/* =========================
-   IŞIK
-========================= */
+/* =====================================================
+   IŞIKLAR
+===================================================== */
 
-const ambient =
+const skyLight =
     new THREE.HemisphereLight(
         0xffffff,
-        0x557755,
-        2
+        0x507040,
+        2.5
     );
 
-scene.add(ambient);
+scene.add(
+    skyLight
+);
 
-const sun =
+
+const sunlight =
     new THREE.DirectionalLight(
         0xffffff,
         3
     );
 
-sun.position.set(
-    -10,
-    20,
-    10
+sunlight.position.set(
+    -15,
+    25,
+    15
 );
 
-sun.castShadow = true;
+sunlight.castShadow =
+    true;
 
-scene.add(sun);
+sunlight.shadow.mapSize.width =
+    1024;
+
+sunlight.shadow.mapSize.height =
+    1024;
+
+scene.add(
+    sunlight
+);
 
 
-/* =========================
+/* =====================================================
    ZEMİN
-========================= */
-
-const groundGeometry =
-    new THREE.PlaneGeometry(
-        80,
-        50
-    );
-
-const groundMaterial =
-    new THREE.MeshStandardMaterial({
-        color:0x4f8f32
-    });
+===================================================== */
 
 const ground =
     new THREE.Mesh(
-        groundGeometry,
-        groundMaterial
+
+        new THREE.PlaneGeometry(
+            60,
+            70
+        ),
+
+        new THREE.MeshStandardMaterial({
+            color:0x4f9d35,
+            roughness:1
+        })
+
     );
 
 ground.rotation.x =
     -Math.PI / 2;
 
-ground.receiveShadow = true;
+ground.receiveShadow =
+    true;
 
-scene.add(ground);
+scene.add(
+    ground
+);
 
 
-/* =========================
-   YOL
-========================= */
-
-const roadGeometry =
-    new THREE.PlaneGeometry(
-        9,
-        50
-    );
-
-const roadMaterial =
-    new THREE.MeshStandardMaterial({
-        color:0xb88a5a
-    });
+/* =====================================================
+   SAVAŞ YOLU
+===================================================== */
 
 const road =
     new THREE.Mesh(
-        roadGeometry,
-        roadMaterial
+
+        new THREE.PlaneGeometry(
+            9,
+            70
+        ),
+
+        new THREE.MeshStandardMaterial({
+            color:0xc99a63,
+            roughness:1
+        })
+
     );
 
 road.rotation.x =
     -Math.PI / 2;
 
 road.position.y =
-    0.02;
+    .02;
 
-scene.add(road);
+scene.add(
+    road
+);
 
 
-/* =========================
-   KALE OLUŞTUR
-========================= */
+/* =====================================================
+   YOL KENARLARI
+===================================================== */
 
-function createCastle(x,color){
+function createStone(
+    x,
+    z,
+    scale
+){
+
+    const stone =
+        new THREE.Mesh(
+
+            new THREE.DodecahedronGeometry(
+                .5,
+                0
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0x777777
+            })
+
+        );
+
+    stone.position.set(
+        x,
+        .35,
+        z
+    );
+
+    stone.scale.setScalar(
+        scale
+    );
+
+    stone.rotation.y =
+        Math.random()*3;
+
+    stone.castShadow =
+        true;
+
+    scene.add(
+        stone
+    );
+}
+
+
+for(
+    let z=-30;
+    z<=30;
+    z+=6
+){
+
+    createStone(
+        -6-Math.random()*2,
+        z,
+        .5+Math.random()*.5
+    );
+
+    createStone(
+        6+Math.random()*2,
+        z,
+        .5+Math.random()*.5
+    );
+
+}
+
+
+/* =====================================================
+   AĞAÇ
+===================================================== */
+
+function createTree(
+    x,
+    z
+){
+
+    const tree =
+        new THREE.Group();
+
+
+    const trunk =
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+                .25,
+                .35,
+                2,
+                8
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0x6b4226
+            })
+
+        );
+
+    trunk.position.y =
+        1;
+
+    trunk.castShadow =
+        true;
+
+    tree.add(
+        trunk
+    );
+
+
+    const leaves =
+        new THREE.Mesh(
+
+            new THREE.ConeGeometry(
+                1.3,
+                3,
+                8
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0x237a35
+            })
+
+        );
+
+    leaves.position.y =
+        3;
+
+    leaves.castShadow =
+        true;
+
+    tree.add(
+        leaves
+    );
+
+
+    tree.position.set(
+        x,
+        0,
+        z
+    );
+
+    scene.add(
+        tree
+    );
+}
+
+
+createTree(
+    -10,
+    -12
+);
+
+createTree(
+    10,
+    -7
+);
+
+createTree(
+    -10,
+    4
+);
+
+createTree(
+    10,
+    10
+);
+
+
+/* =====================================================
+   KALE FONKSİYONU
+===================================================== */
+
+function createCastle(
+    z,
+    mainColor
+){
 
     const castle =
         new THREE.Group();
 
-    castle.position.x = x;
+    castle.position.z =
+        z;
 
-    /* ana bina */
+
+    /* ANA BİNA */
 
     const body =
         new THREE.Mesh(
+
             new THREE.BoxGeometry(
-                5,
                 6,
+                5.5,
                 4
             ),
+
             new THREE.MeshStandardMaterial({
-                color:color
+                color:mainColor,
+                roughness:.8
             })
+
         );
 
-    body.position.y = 3;
+    body.position.y =
+        2.75;
 
-    body.castShadow = true;
+    body.castShadow =
+        true;
 
-    castle.add(body);
+    body.receiveShadow =
+        true;
+
+    castle.add(
+        body
+    );
 
 
-    /* kuleler */
+    /* KULELER */
 
-    [-2.7,2.7].forEach(
-        towerX => {
+    [-3.3,3.3]
+    .forEach(
+        x => {
 
             const tower =
                 new THREE.Mesh(
+
                     new THREE.BoxGeometry(
-                        1.7,
-                        8,
-                        2
+                        2,
+                        7,
+                        2.4
                     ),
+
                     new THREE.MeshStandardMaterial({
-                        color:color
+                        color:mainColor
                     })
+
                 );
 
             tower.position.set(
-                towerX,
-                4,
+                x,
+                3.5,
                 0
             );
 
-            tower.castShadow = true;
+            tower.castShadow =
+                true;
 
-            castle.add(tower);
+            castle.add(
+                tower
+            );
 
 
-            /* kule tepesi */
+            /* ÇATI */
 
             const roof =
                 new THREE.Mesh(
+
                     new THREE.ConeGeometry(
-                        1.35,
-                        2.2,
+                        1.7,
+                        2.5,
                         4
                     ),
+
                     new THREE.MeshStandardMaterial({
-                        color:0x432818
+                        color:0x542b20
                     })
+
                 );
 
             roof.position.set(
-                towerX,
-                9,
+                x,
+                8.25,
                 0
             );
 
             roof.rotation.y =
                 Math.PI / 4;
 
-            roof.castShadow = true;
+            roof.castShadow =
+                true;
 
-            castle.add(roof);
+            castle.add(
+                roof
+            );
 
         }
     );
 
 
-    /* kapı */
+    /* KAPI */
 
     const door =
         new THREE.Mesh(
+
             new THREE.BoxGeometry(
-                1.5,
-                2.5,
-                .25
+                1.7,
+                2.7,
+                .3
             ),
+
             new THREE.MeshStandardMaterial({
-                color:0x3b2415
+                color:0x392015
             })
+
         );
 
     door.position.set(
         0,
-        1.25,
-        -2.05
+        1.35,
+        z < 0 ? 2.05 : -2.05
     );
 
-    castle.add(door);
+    castle.add(
+        door
+    );
 
 
-    /* bayrak */
+    /* BAYRAK DİREĞİ */
 
     const pole =
         new THREE.Mesh(
+
             new THREE.CylinderGeometry(
-                .05,
-                .05,
-                3
+                .06,
+                .06,
+                3.5
             ),
+
             new THREE.MeshStandardMaterial({
-                color:0x4b3621
+                color:0x3d2b1f
             })
+
         );
 
     pole.position.set(
         0,
-        8,
+        9,
         0
     );
 
-    castle.add(pole);
+    castle.add(
+        pole
+    );
 
+
+    /* BAYRAK */
 
     const flag =
         new THREE.Mesh(
+
             new THREE.PlaneGeometry(
-                1.6,
-                .9
+                2,
+                1.1
             ),
+
             new THREE.MeshStandardMaterial({
-                color:color,
-                side:THREE.DoubleSide
+
+                color:mainColor,
+
+                side:
+                THREE.DoubleSide
+
             })
+
         );
 
     flag.position.set(
-        .75,
-        8.8,
+        1,
+        9.5,
         0
     );
 
-    castle.add(flag);
+    castle.add(
+        flag
+    );
 
 
-    scene.add(castle);
+    /* CAN BAR ARKA PLAN */
+
+    const hpBack =
+        new THREE.Mesh(
+
+            new THREE.PlaneGeometry(
+                4,
+                .45
+            ),
+
+            new THREE.MeshBasicMaterial({
+                color:0x202020,
+                side:THREE.DoubleSide
+            })
+
+        );
+
+    hpBack.position.set(
+        0,
+        10.2,
+        0
+    );
+
+    castle.add(
+        hpBack
+    );
+
+
+    /* CAN */
+
+    const hpFill =
+        new THREE.Mesh(
+
+            new THREE.PlaneGeometry(
+                3.8,
+                .28
+            ),
+
+            new THREE.MeshBasicMaterial({
+                color:0x22c55e,
+                side:THREE.DoubleSide
+            })
+
+        );
+
+    hpFill.position.set(
+        0,
+        10.2,
+        -.03
+    );
+
+    castle.add(
+        hpFill
+    );
+
+
+    castle.userData.hp =
+        100;
+
+    castle.userData.hpFill =
+        hpFill;
+
+
+    scene.add(
+        castle
+    );
+
 
     return castle;
 }
 
 
-/* =========================
+/* =====================================================
    KALELER
-========================= */
+===================================================== */
 
 const playerCastle =
     createCastle(
-        -16,
-        0x4169e1
+        24,
+        0x3976d3
     );
+
 
 const enemyCastle =
     createCastle(
-        16,
-        0xb83232
+        -24,
+        0xc83b3b
     );
 
 
-/* =========================
-   KARAKTER
-========================= */
+/* =====================================================
+   ŞÖVALYE
+===================================================== */
 
 function createKnight(){
 
-    const group =
+    const knight =
         new THREE.Group();
+
+
+    /* GÖVDE */
 
     const body =
         new THREE.Mesh(
+
             new THREE.CapsuleGeometry(
                 .65,
-                1.3,
+                1.25,
                 4,
                 8
             ),
+
             new THREE.MeshStandardMaterial({
-                color:0x355c9b
+                color:0x315ca8,
+                roughness:.7
             })
+
         );
 
-    body.position.y = 1.5;
+    body.position.y =
+        1.45;
 
-    body.castShadow = true;
+    body.castShadow =
+        true;
 
-    group.add(body);
+    knight.add(
+        body
+    );
 
+
+    /* KAFA */
+
+    const head =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                .62,
+                12,
+                10
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0xf0c7a4
+            })
+
+        );
+
+    head.position.y =
+        2.7;
+
+    head.castShadow =
+        true;
+
+    knight.add(
+        head
+    );
+
+
+    /* KASK */
 
     const helmet =
         new THREE.Mesh(
+
             new THREE.SphereGeometry(
-                .7,
+                .72,
                 12,
-                8
+                8,
+                0,
+                Math.PI*2,
+                0,
+                Math.PI*.55
             ),
+
             new THREE.MeshStandardMaterial({
-                color:0xbfc7d5,
-                metalness:.5
+                color:0xbcc6d4,
+                metalness:.7,
+                roughness:.3
             })
+
         );
 
-    helmet.position.y = 2.8;
+    helmet.position.y =
+        2.75;
 
-    helmet.castShadow = true;
+    helmet.castShadow =
+        true;
 
-    group.add(helmet);
+    knight.add(
+        helmet
+    );
 
+
+    /* KILIC */
 
     const sword =
         new THREE.Mesh(
+
             new THREE.BoxGeometry(
                 .18,
-                2,
+                2.2,
                 .3
             ),
+
             new THREE.MeshStandardMaterial({
-                color:0xdce6f2,
-                metalness:.8
+                color:0xe7edf5,
+                metalness:.9,
+                roughness:.2
             })
+
         );
 
     sword.position.set(
         .9,
-        1.6,
+        1.65,
         0
     );
 
     sword.rotation.z =
-        -0.5;
+        -.45;
 
-    sword.castShadow = true;
+    sword.castShadow =
+        true;
 
-    group.add(sword);
-
-
-    group.scale.set(
-        1.1,
-        1.1,
-        1.1
+    knight.add(
+        sword
     );
 
-    return group;
+
+    /* KOL */
+
+    const arm =
+        new THREE.Mesh(
+
+            new THREE.CapsuleGeometry(
+                .18,
+                .8,
+                4,
+                6
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0x315ca8
+            })
+
+        );
+
+    arm.position.set(
+        .65,
+        1.8,
+        0
+    );
+
+    arm.rotation.z =
+        -.5;
+
+    arm.castShadow =
+        true;
+
+    knight.add(
+        arm
+    );
+
+
+    knight.scale.set(
+        1.15,
+        1.15,
+        1.15
+    );
+
+
+    return knight;
 }
 
 
-/* =========================
-   ŞÖVALYE
-========================= */
+/* =====================================================
+   ŞÖVALYE SALDIRISI
+===================================================== */
 
-let knight = null;
-let attacking = false;
+let activeKnight =
+    null;
+
+let attacking =
+    false;
+
 
 function sendKnight(){
 
-    if(attacking) return;
+    if(attacking)
+        return;
 
-    attacking = true;
+
+    attacking =
+        true;
+
 
     document.getElementById(
         "message"
     ).innerText =
         "⚔️ Şövalye saldırıyor!";
 
-    knight =
+
+    activeKnight =
         createKnight();
 
-    knight.position.set(
-        -11,
+
+    activeKnight.position.set(
         0,
-        0
+        0,
+        18
     );
 
-    scene.add(knight);
 
-    animateKnight();
+    activeKnight.rotation.y =
+        Math.PI;
+
+
+    scene.add(
+        activeKnight
+    );
+
+
+    moveKnight();
 }
 
 
-function animateKnight(){
+function moveKnight(){
 
-    if(!knight) return;
+    if(!activeKnight)
+        return;
 
-    knight.position.x += .16;
 
-    knight.rotation.y =
-        Math.sin(
-            Date.now() * .01
-        ) * .05;
+    activeKnight.position.z -=
+        .16;
+
+
+    /* KOŞMA HAREKETİ */
+
+    activeKnight.position.y =
+        Math.abs(
+            Math.sin(
+                Date.now()*.012
+            )
+        )*.08;
+
 
     if(
-        knight.position.x >= 12
+        activeKnight.position.z
+        <= -18
     ){
 
-        enemyHit();
+        damageEnemy();
 
-        scene.remove(knight);
 
-        knight = null;
+        scene.remove(
+            activeKnight
+        );
 
-        attacking = false;
+        activeKnight =
+            null;
+
+        attacking =
+            false;
 
         return;
     }
 
+
     requestAnimationFrame(
-        animateKnight
+        moveKnight
     );
 }
 
 
-/* =========================
-   KALE VURUŞU
-========================= */
+/* =====================================================
+   DÜŞMANA HASAR
+===================================================== */
 
-function enemyHit(){
+function damageEnemy(){
+
+    enemyCastle.userData.hp -=
+        10;
+
+
+    if(
+        enemyCastle.userData.hp < 0
+    ){
+
+        enemyCastle.userData.hp =
+            0;
+
+    }
+
+
+    updateHP();
+
+
+    /* SARSILMA */
 
     enemyCastle.scale.set(
         1.08,
@@ -635,84 +1272,192 @@ function enemyHit(){
         1.08
     );
 
-    setTimeout(()=>{
-        enemyCastle.scale.set(
-            1,
-            1,
-            1
-        );
-    },180);
 
-    document.getElementById(
-        "message"
-    ).innerText =
-        "💥 Kale vuruldu!";
+    setTimeout(
+        ()=>{
+
+            enemyCastle.scale.set(
+                1,
+                1,
+                1
+            );
+
+        },
+        180
+    );
+
+
+    if(
+        enemyCastle.userData.hp <= 0
+    ){
+
+        document.getElementById(
+            "message"
+        ).innerText =
+            "🏆 ZAFER! Düşman kalesi yıkıldı!";
+
+        document.getElementById(
+            "gold"
+        ).innerText =
+            Number(
+                document.getElementById(
+                    "gold"
+                ).innerText
+            ) + 50;
+
+    }
+    else{
+
+        document.getElementById(
+            "message"
+        ).innerText =
+            "💥 Düşman kalesi hasar aldı!";
+
+    }
+
 }
 
 
-/* =========================
-   DİĞER BİRLİKLER
-========================= */
+/* =====================================================
+   CAN BARLARI
+===================================================== */
+
+function updateHP(){
+
+    enemyCastle
+    .userData
+    .hpFill
+    .scale.x =
+        enemyCastle.userData.hp / 100;
+
+}
+
+
+/* =====================================================
+   OKÇU
+===================================================== */
+
+function createArcher(){
+
+    const archer =
+        new THREE.Group();
+
+
+    const body =
+        new THREE.Mesh(
+
+            new THREE.CapsuleGeometry(
+                .55,
+                1.2,
+                4,
+                8
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0x8b5a2b
+            })
+
+        );
+
+    body.position.y =
+        1.4;
+
+    body.castShadow =
+        true;
+
+    archer.add(
+        body
+    );
+
+
+    const head =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                .55,
+                12,
+                10
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0xf0c7a4
+            })
+
+        );
+
+    head.position.y =
+        2.65;
+
+    head.castShadow =
+        true;
+
+    archer.add(
+        head
+    );
+
+
+    /* YAY */
+
+    const bow =
+        new THREE.Mesh(
+
+            new THREE.TorusGeometry(
+                .7,
+                .08,
+                8,
+                16,
+                Math.PI
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0x704214
+            })
+
+        );
+
+    bow.position.set(
+        .8,
+        1.7,
+        0
+    );
+
+    bow.rotation.y =
+        Math.PI/2;
+
+    archer.add(
+        bow
+    );
+
+
+    return archer;
+}
+
 
 function sendArcher(){
 
+    if(attacking)
+        return;
+
+
+    attacking =
+        true;
+
+
     document.getElementById(
         "message"
     ).innerText =
-        "🏹 Okçu sistemi geliyor...";
-}
-
-function sendGiant(){
-
-    document.getElementById(
-        "message"
-    ).innerText =
-        "🔨 Dev sistemi geliyor...";
-}
+        "🏹 Okçu ateş ediyor!";
 
 
-/* =========================
-   ANİMASYON
-========================= */
+    const archer =
+        createArcher();
 
-function animate(){
 
-    requestAnimationFrame(
-        animate
+    archer.position.set(
+        0,
+        0,
+        14
     );
 
-    renderer.render(
-        scene,
-        camera
-    );
-}
 
-animate();
-
-
-/* =========================
-   EKRAN BOYUTU
-========================= */
-
-window.addEventListener(
-    "resize",
-    ()=>{
-
-        camera.aspect =
-            window.innerWidth /
-            window.innerHeight;
-
-        camera.updateProjectionMatrix();
-
-        renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
-        );
-
-    }
-);
-
-</script>
-
-</body>
-</html>
+    a
