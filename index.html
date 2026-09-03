@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Castle Chaos 3D</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a1020;font-family:Inter,Arial,sans-serif}
+#game{position:fixed;inset:0}
+canvas{display:block}
+#ui{position:fixed;inset:0;color:#fff;pointer-events:none}
+.top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.card{background:linear-gradient(180deg,rgba(24,39,65,.92),rgba(10,19,35,.92));border:1px solid rgba(255,255,255,.18);box-shadow:0 12px 30px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.12);backdrop-filter:blur(12px);border-radius:18px}
+.logo{padding:11px 16px;font-size:19px;font-weight:950;letter-spacing:.2px}
+.logo b{opacity:.45}
+.gold{padding:10px 16px;font-size:18px;font-weight:900}
+#status{position:absolute;top:79px;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:18px;background:rgba(8,16,31,.82);font-weight:850;font-size:14px;white-space:nowrap;box-shadow:0 10px 26px rgba(0,0,0,.25)}
+#bars{position:absolute;top:121px;left:50%;transform:translateX(-50%);width:min(520px,92vw);display:flex;gap:8px}
+.hp{flex:1;padding:7px 9px;border-radius:13px;background:rgba(7,13,26,.76);border:1px solid rgba(255,255,255,.15)}
+.hphead{display:flex;justify-content:space-between;font-size:10px;font-weight:900;margin-bottom:5px}
+.track{height:9px;border-radius:9px;background:#18243a;overflow:hidden;box-shadow:inset 0 1px 2px #000}
+.fill{height:100%;width:100%;transition:width .25s}
+#myFill{background:linear-gradient(90deg,#22c55e,#8df59e)}
+#enemyFill{background:linear-gradient(90deg,#ef4444,#ff8a8a)}
+#tip{position:absolute;left:50%;bottom:100px;transform:translateX(-50%);font-size:12px;color:rgba(255,255,255,.72);white-space:nowrap}
+#controls{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:min(690px,96vw);display:flex;gap:9px;pointer-events:auto}
+.unit{position:relative;flex:1;min-height:78px;border:1px solid #5e6f8b;border-bottom:6px solid #111a2b;border-radius:20px;background:linear-gradient(180deg,#354761,#1b273d);color:#fff;font-weight:950;font-size:13px;box-shadow:0 10px 22px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.12);touch-action:manipulation;transition:.12s}
+.unit:active{transform:translateY(2px)}
+.unit.sel{border-color:#ffd42a;box-shadow:0 0 25px rgba(255,207,45,.34),0 10px 22px rgba(0,0,0,.38)}
+.unit .emoji{display:block;font-size:29px;line-height:32px}
+.unit small{display:block;margin-top:2px;opacity:.62;font-size:9px}
+#newGame{position:absolute;right:12px;bottom:104px;pointer-events:auto;border:0;border-radius:15px;padding:12px 15px;background:linear-gradient(180deg,#347ff5,#1659c9);color:#fff;font-weight:950;box-shadow:0 9px 20px rgba(0,0,0,.3)}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none}
+@media(max-width:520px){
+ .logo{font-size:16px;padding:10px 13px}.gold{font-size:16px;padding:10px 13px}
+ #status{top:72px;font-size:13px}
+ #bars{top:111px}.unit{min-height:70px;border-radius:17px;font-size:12px}
+ #controls{gap:6px}.unit .emoji{font-size:27px}
+ #tip{display:none}#newGame{bottom:93px;right:9px}
+}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="ui">
+  <div class="top">
+    <div class="card logo">🏰 CASTLE CHAOS <b>3D</b></div>
+    <div class="card gold">🪙 <span id="gold">100</span></div>
+  </div>
+  <div id="status">Birlik seç ve saldır!</div>
+  <div id="bars">
+    <div class="hp"><div class="hphead"><span>🟢 SENİN KALE</span><span id="myText">100</span></div><div class="track"><div id="myFill" class="fill"></div></div></div>
+    <div class="hp"><div class="hphead"><span>🔴 DÜŞMAN</span><span id="enemyText">100</span></div><div class="track"><div id="enemyFill" class="fill"></div></div></div>
+  </div>
+  <div id="tip">Birlik seç → savaşçıyı izle → kaleyi yık</div>
+  <button id="newGame">↻ Yeni Savaş</button>
+  <div id="controls">
+    <button class="unit sel" data-type="knight"><span class="emoji">⚔️</span>ŞÖVALYE<small>GÜÇLÜ YAKIN SALDIRI</small></button>
+    <button class="unit" data-type="archer"><span class="emoji">🏹</span>OKÇU<small>UZAKTAN SALDIRI</small></button>
+    <button class="unit" data-type="giant"><span class="emoji">🔨</span>DEV<small>AĞIR SALDIRI</small></button>
+  </div>
+</div>
+<div id="flash"></div>
+
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x8fd4ee);
+scene.fog=new THREE.Fog(0x8fd4ee,38,78);
+
+const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,180);
+camera.position.set(0,12.5,27);
+camera.lookAt(0,5,-3);
+
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.12;
+document.getElementById("game").appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xdff7ff,0x29412d,2.1));
+const sun=new THREE.DirectionalLight(0xffe7c2,3.5);
+sun.position.set(-18,28,18);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.left=-30;sun.shadow.camera.right=30;
+sun.shadow.camera.top=35;sun.shadow.camera.bottom=-30;
+scene.add(sun);
+
+const M={
+ grass:new THREE.MeshStandardMaterial({color:0x4d9f4a,roughness:.98}),
+ grassLight:new THREE.MeshStandardMaterial({color:0x70b95b,roughness:1}),
+ dirt:new THREE.MeshStandardMaterial({color:0xc8945d,roughness:1}),
+ dirtDark:new THREE.MeshStandardMaterial({color:0x95633f,roughness:1}),
+ stone:new THREE.MeshStandardMaterial({color:0x7c8996,roughness:.82}),
+ stone2:new THREE.MeshStandardMaterial({color:0xaeb8c1,roughness:.78}),
+ stoneDark:new THREE.MeshStandardMaterial({color:0x303c4b,roughness:.9}),
+ stoneBlue:new THREE.MeshStandardMaterial({color:0x486c9d,roughness:.75}),
+ roofBlue:new THREE.MeshStandardMaterial({color:0x31568f,roughness:.72}),
+ roofRed:new THREE.MeshStandardMaterial({color:0xa8323a,roughness:.72}),
+ wood:new THREE.MeshStandardMaterial({color:0x6b4226,roughness:1}),
+ wood2:new THREE.MeshStandardMaterial({color:0x9b6335,roughness:.95}),
+ metal:new THREE.MeshStandardMaterial({color:0xbcc8d5,metalness:.7,roughness:.26}),
+ darkMetal:new THREE.MeshStandardMaterial({color:0x293442,metalness:.55,roughness:.32}),
+ gold:new THREE.MeshStandardMaterial({color:0xf6c92f,metalness:.8,roughness:.18}),
+ skin:new THREE.MeshStandardMaterial({color:0xc9825e,roughness:.92}),
+ red:new THREE.MeshStandardMaterial({color:0xb63b35,roughness:.82}),
+ green:new THREE.MeshStandardMaterial({color:0x3f914e,roughness:.82}),
+ archerDark:new THREE.MeshStandardMaterial({color:0x235a31,roughness:.8}),
+ giant:new THREE.MeshStandardMaterial({color:0x8b5737,roughness:.9}),
+ blue:new THREE.MeshStandardMaterial({color:0x3975c8,roughness:.78}),
+ purple:new THREE.MeshStandardMaterial({color:0x744ac0,roughness:.8}),
+ black:new THREE.MeshStandardMaterial({color:0x121821,roughness:.9}),
+ white:new THREE.MeshStandardMaterial({color:0xf4f6f8,roughness:.75})
+};
+
+function mesh(g,m){const x=new THREE.Mesh(g,m);x.castShadow=true;x.receiveShadow=true;return x}
+function box(p,w,h,d,m,x,y,z){const o=mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);p.add(o);return o}
+function cyl(p,r,h,m,x,y,z,s=12){const o=mesh(new THREE.CylinderGeometry(r,r,h,s),m);o.position.set(x,y,z);p.add(o);return o}
+function sphere(p,r,m,x,y,z){const o=mesh(new THREE.SphereGeometry(r,16,12),m);o.position.set(x,y,z);p.add(o);return o}
+function cone(p,r,h,m,x,y,z,s=10){const o=mesh(new THREE.ConeGeometry(r,h,s),m);o.position.set(x,y,z);p.add(o);return o}
+
+box(scene,70,.45,70,M.grass,0,-.28,0);
+box(scene,11,.18,48,M.dirt,0,-.02,0);
+
+// Road edging
+box(scene,.22,.12,48,M.dirtDark,-5.35,.03,0);
+box(scene,.22,.12,48,M.dirtDark,5.35,.03,0);
+
+// Road stones
+for(let z=18;z>-18;z-=3.2){
+  for(let x=-3.5;x<=3.5;x+=1.75){
+    const s=box(scene,1.35,.07,1.02,M.stone2,x,-.005,z);
+    s.rotation.y=(Math.random()-.5)*.22;
+  }
+}
+
+// Decorative trees and rocks
+function tree(x,z,s=1){
+  const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
+  cyl(g,.27,2.3,M.wood,0,1.1,0,8);
+  sphere(g,1.15,M.grassLight,0,2.35,0);
+  sphere(g,.82,M.grass,-.58,2.62,.08);
+  sphere(g,.78,M.grass,.58,2.55,.05);
+}
+[[-9,-11],[9,-9],[-10,0],[10,2],[-9,12],[9,14]].forEach((p,i)=>tree(p[0],p[1],.78+(i%2)*.18));
+for(const side of [-1,1]) for(let i=0;i<8;i++){
+  const r=box(scene,.7+Math.random()*1.2,.6+Math.random()*1.5,1+Math.random(),M.stoneDark,
+    side*(6.5+Math.random()*2.2),.25+Math.random(),-15+i*4);
+  r.rotation.y=Math.random();
+}
+
+// Castle
+function flag(p,c,x,y,z){
+  box(p,.08,1.9,.08,M.wood,x,y,z);
+  const f=mesh(new THREE.PlaneGeometry(1.25,.72),new THREE.MeshStandardMaterial({color:c,side:THREE.DoubleSide,roughness:.8}));
+  f.position.set(x+.62,y+.4,z);p.add(f);
+}
+function castle(enemy=false){
+  const g=new THREE.Group();
+  g.position.z=enemy?-15:15;
+  g.rotation.y=enemy?Math.PI:0;
+  scene.add(g);
+
+  // foundation
+  box(g,8.2,1.0,5.4,M.stoneDark,0,.5,0);
+  box(g,7.7,5.6,5.0,M.stone,0,3.25,0);
+
+  // block pattern
+  for(let row=0;row<4;row++){
+    for(let col=-3;col<=3;col+=2){
+      const b=box(g,1.65,1.25,5.08,(row+col)%2?M.stone2:M.stone,
+        col*.98,1.0+row*1.22,0);
+      b.scale.x=.92;
+    }
+  }
+
+  // towers
+  for(const sx of [-3.75,3.75]){
+    cyl(g,1.5,8.2,M.stone,sx,4.2,0,16);
+    cyl(g,1.25,.35,M.stoneDark,sx,8.35,0,16);
+    cone(g,1.85,2.65,enemy?M.roofRed:M.roofBlue,sx,9.85,0,12);
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4;
+      box(g,.42,1,.5,M.stoneDark,sx+Math.cos(a)*1.28,8.62,Math.sin(a)*1.28);
+    }
+    flag(g,enemy?0xd93e46:0x3c82e9,sx,10.8,.12);
+    // tower window
+    box(g,.34,.72,.08,M.black,sx,6.7,1.45);
+    sphere(g,.17,M.blue,sx,6.72,1.42);
+  }
+
+  // center battlement
+  for(let x=-2.9;x<=2.9;x+=1.45) box(g,.5,.9,.5,M.stoneDark,x,6.65,2.55);
+
+  // gate frame and gate
+  box(g,2.15,3.25,.32,M.stoneDark,0,1.65,2.58);
+  box(g,1.7,2.72,.38,M.wood,0,1.36,2.75);
+  sphere(g,.85,M.wood,0,2.73,2.75);
+  for(let x=-.58;x<=.58;x+=.58) box(g,.1,2.5,.08,M.wood2,x,1.35,2.96);
+
+  // torches
+  for(const x of [-1.55,1.55]){
+    cyl(g,.08,.62,M.wood,x,4.0,2.5,8);
+    const flame=sphere(g,.24,M.gold,x,4.42,2.5);flame.userData.flame=true;
+    const glow=new THREE.PointLight(0xffa52b,1.2,5);glow.position.set(x,4.4,2.5);g.add(glow);
+  }
+  return g;
+}
+const playerCastle=castle(false), enemyCastle=castle(true);
+
+// Unit models
+function limb(p,r1,r2,len,m,x,y,z,rz=0){
+  const o=mesh(new THREE.CylinderGeometry(r1,r2,len,10),m);
+  o.position.set(x,y,z);o.rotation.z=rz;p.add(o);return o;
+}
+function makeKnight(){
+  const g=new THREE.Group();
+  // legs
+  limb(g,.17,.2,1.0,M.darkMetal,-.27,.55,0,0);
+  limb(g,.17,.2,1.0,M.darkMetal,.27,.55,0,0);
+  // body armor
+  cyl(g,.62,1.35,M.blue,0,1.25,0,12);
+  box(g,1.02,.18,.8,M.gold,0,1.02,.03);
+  // shoulder armor
+  sphere(g,.3,M.darkMetal,-.66,1.72,0);
+  sphere(g,.3,M.darkMetal,.66,1.72,0);
+  // head + helmet
+  sphere(g,.47,M.skin,0,2.22,0);
+  cyl(g,.54,.38,M.darkMetal,0,2.55,0,12);
+  cone(g,.6,.48,M.darkMetal,0,2.88,0,10);
+  box(g,.56,.12,.08,M.gold,0,2.55,.5);
+  // eyes
+  sphere(g,.055,M.white,-.16,2.25,.43);sphere(g,.055,M.white,.16,2.25,.43);
+  sphere(g,.025,M.black,-.16,2.25,.475);sphere(g,.025,M.black,.16,2.25,.475);
+  // shield
+  const sh=mesh(new THREE.CylinderGeometry(.58,.58,.12,12),M.red);
+  sh.position.set(-.72,1.38,.25);sh.rotation.z=Math.PI/2;g.add(sh);
+  // sword
+  box(g,.12,1.65,.1,M.metal,.78,2.02,.05);
+  box(g,.55,.12,.14,M.gold,.78,1.32,.05);
+  return g;
+}
+function makeArcher(){
+  const g=new THREE.Group();
+  limb(g,.16,.18,.95,M.darkMetal,-.25,.5,0);
+  limb(g,.16,.18,.95,M.darkMetal,.25,.5,0);
+  cyl(g,.52,1.25,M.green,0,1.25,0,12);
+  sphere(g,.43,M.skin,0,2.15,0);
+  // hood
+  cone(g,.56,.75,M.archerDark||M.green,0,2.45,0,12);
+  // face
+  sphere(g,.055,M.white,-.14,2.17,.4);sphere(g,.055,M.white,.14,2.17,.4);
+  sphere(g,.025,M.black,-.14,2.17,.445);sphere(g,.025,M.black,.14,2.17,.445);
+  // bow
+  const bow=mesh(new THREE.TorusGeometry(.72,.055,8,28,Math.PI*1.15),M.wood);
+  bow.position.set(.72,1.55,.18);bow.rotation.set(Math.PI/2,0,0);g.add(bow);
+  box(g,.035,1.25,.035,M.white,.72,1.55,.18);
+  // quiver
+  cyl(g,.13,.85,M.wood2,-.48,1.55,-.38,8);
+  for(let i=0;i<3;i++) box(g,.045,1.05,.045,M.wood,.42+i*.08,1.7,-.38);
+  return g;
+}
+function makeGiant(){
+  const g=new THREE.Group();
+  limb(g,.25,.3,1.35,M.giant||M.dirtDark,-.45,.72,0);
+  limb(g,.25,.3,1.35,M.giant||M.dirtDark,.45,.72,0);
+  cyl(g,1.0,2.1,M.dirtDark,0,1.55,0,14);
+  // belt
+  box(g,1.95,.25,1.0,M.wood,0,1.28,.02);
+  box(g,.25,.25,.08,M.gold,0,1.28,.53);
+  sphere(g,.72,M.skin,0,2.82,0);
+  // beard
+  cone(g,.6,1.05,M.wood,0,2.55,.38,10);
+  // horns
+  cone(g,.16,.55,M.gold,-.58,3.28,0,8);cone(g,.16,.55,M.gold,.58,3.28,0,8);
+  // eyes
+  sphere(g,.075,M.white,-.2,2.88,.64);sphere(g,.075,M.white,.2,2.88,.64);
+  sphere(g,.035,M.black,-.2,2.88,.7);sphere(g,.035,M.black,.2,2.88,.7);
+  // huge hammer
+  box(g,.2,2.65,M.wood,.95,1.9,.02);
+  box(g,1.1,.68,.62,M.darkMetal,1.15,3.15,.02);
+  box(g,1.25,.18,.75,M.metal,1.15,3.15,.02);
+  return g;
+}
+function makeUnit(type){
+  if(type==="knight")return makeKnight();
+  if(type==="archer")return makeArcher();
+  return makeGiant();
+}
+
+// State
+const stats={
+ knight:{damage:12,duration:1250},
+ archer:{damage:8,duration:1050},
+ giant:{damage:24,duration:1850}
+};
+let gold=100,myHP=100,enemyHP=100,busy=false,over=false;
+let activeUnits=[];
+const ui={
+ gold:document.getElementById("gold"),myText:document.getElementById("myText"),enemyText:document.getElementById("enemyText"),
+ myFill:document.getElementById("myFill"),enemyFill:document.getElementById("enemyFill"),status:document.getElementById("status"),
+ flash:document.getElementById("flash")
+};
+function updateUI(){
+ ui.gold.textContent=gold;
+ ui.myText.textContent=myHP;ui.enemyText.textContent=enemyHP;
+ ui.myFill.style.width=myHP+"%";ui.enemyFill.style.width=enemyHP+"%";
+}
+function burst(pos,hot=true){
+  const group=new THREE.Group();group.position.copy(pos);scene.add(group);
+  for(let i=0;i<18;i++){
+    const p=mesh(new THREE.SphereGeometry(.06+Math.random()*.08,7,7),hot?M.gold:M.stone2);
+    p.position.set(0,0,0);group.add(p);
+    p.userData.v=new THREE.Vector3((Math.random()-.5)*5,Math.random()*4+.5,(Math.random()-.5)*3);
+  }
+  group.userData.life=0;group.userData.fx=true;
+  return group;
+}
+function projectile(type){
+  const start=new THREE.Vector3(0,2.2,-1.5);
+  const end=new THREE.Vector3(0,3.2,-12.6);
+  let p;
+  if(type==="archer"){
+    p=box(scene,.07,.95,.07,M.wood,0,2.2,-1.5);
+    p.rotation.x=Math.PI/2;
+  }else if(type==="knight"){
+    p=mesh(new THREE.CylinderGeometry(.09,.09,1.1,8),M.metal);
+    p.position.copy(start);p.rotation.x=Math.PI/2;scene.add(p);
+  }else{
+    p=mesh(new THREE.SphereGeometry(.28,12,10),M.stoneDark);p.position.copy(start);scene.add(p);
+  }
+  const t0=performance.now(),dur=type==="giant"?430:300;
+  function fly(now){
+    const t=Math.min((now-t0)/dur,1);
+    p.position.lerpVectors(start,end,t);
+    p.position.y+=Math.sin(t*Math.PI)*2.2;
+    p.rotation.x+=.25;
+    if(t<1)requestAnimationFrame(fly);
+    else{
+      scene.remove(p);burst(end,true);
+      enemyHP=Math.max(0,enemyHP-stats[type].damage);updateUI();
+      if(enemyHP<=0){
+        over=true;gold+=50;updateUI();
+        ui.status.textContent="🏆 ZAFER! +50 ALTIN";
+        ui.flash.style.opacity=.75;setTimeout(()=>ui.flash.style.opacity=0,90);
+      }else{
+        ui.status.textContent="💥 İsabet! Düşman karşı saldırıyor...";
+        setTimeout(enemyAttack,650);
+      }
+    }
+  }
+  requestAnimationFrame(fly);
+}
+function enemyAttack(){
+  if(over)return;
+  myHP=Math.max(0,myHP-7);updateUI();
+  burst(new THREE.Vector3(0,3,13),false);
+  if(myHP<=0){over=true;ui.status.textContent="💀 KALE YIKILDI!";}
+}
+function attack(type){
+  if(busy||over)return;
+  busy=true;
+  ui.status.textContent=(type==="knight"?"⚔️ Şövalye":type==="archer"?"🏹 Okçu":"🔨 Dev")+" savaşa koşuyor!";
+  const u=makeUnit(type);
+  u.position.set((Math.random()-.5)*1.6,.05,10.8);
+  scene.add(u);activeUnits.push(u);
+  const start=performance.now(),duration=stats[type].duration;
+  const startX=u.position.x;
+  function move(now){
+    const t=Math.min((now-start)/duration,1);
+    const e=t*t*(3-2*t);
+    u.position.z=10.8+(-12.8)*e;
+    u.position.x=startX+Math.sin(t*Math.PI*3)*.35;
+    u.rotation.y=Math.PI;
+    u.position.y=.08+Math.sin(t*Math.PI*5)*.06;
+    if(type==="giant")u.rotation.z=Math.sin(t*Math.PI*8)*.045;
+    if(t<1)requestAnimationFrame(move);
+    else{
+      scene.remove(u);
+      activeUnits=activeUnits.filter(x=>x!==u);
+      busy=false;
+      burst(new THREE.Vector3(0,3.0,-12.4),true);
+      projectile(type);
+      ui.status.textContent="⚔️ Saldırı gerçekleşti!";
+    }
+  }
+  requestAnimationFrame(move);
+}
+
+// Buttons
+document.querySelectorAll(".unit").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".unit").forEach(b=>b.classList.remove("sel"));
+    btn.classList.add("sel");
+    attack(btn.dataset.type);
+  });
+});
+document.getElementById("newGame").addEventListener("click",()=>{
+  activeUnits.forEach(u=>scene.remove(u));activeUnits=[];
+  gold=100;myHP=100;enemyHP=100;busy=false;over=false;
+  ui.status.textContent="Birlik seç ve saldır!";
+  updateUI();
+});
+
+// Animation
+let time=0;
+const fx=[];
+function animate(){
+  requestAnimationFrame(animate);
+  time+=.016;
+
+  scene.traverse(o=>{
+    if(o.userData.flame){
+      o.scale.setScalar(1+Math.sin(time*12)*.13);
+      o.position.y+=Math.sin(time*9)*.0015;
+    }
+    if(o.userData.fx){
+      o.userData.life+=.035;
+      o.children.forEach(p=>{
+        p.position.addScaledVector(p.userData.v,.035);
+        p.userData.v.y-=.09;
+        p.scale.multiplyScalar(.96);
+      });
+      if(o.userData.life>1.2)scene.remove(o);
+    }
+  });
+
+  // subtle camera breathing for a more "game" feel
+  camera.position.x=Math.sin(time*.35)*.18;
+  camera.lookAt(0,5,-3);
+  renderer.render(scene,camera);
+}
+addEventListener("resize",()=>{
+  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+updateUI();animate();
+</script>
+</body>
+</html>
