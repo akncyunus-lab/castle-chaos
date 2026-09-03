@@ -3,450 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 
-<title>Castle Chaos</title>
+<title>Castle Chaos 3D</title>
 
 <style>
 *{
     box-sizing:border-box;
     margin:0;
     padding:0;
-    -webkit-tap-highlight-color:transparent;
 }
 
-body{
-    font-family:Arial,sans-serif;
-    background:#0b1020;
-    color:white;
+html,body{
+    width:100%;
+    height:100%;
     overflow:hidden;
-    touch-action:manipulation;
+    background:#111;
+    font-family:Arial,sans-serif;
 }
 
 #game{
-    width:100vw;
-    height:100vh;
-    display:flex;
-    flex-direction:column;
+    position:relative;
+    width:100%;
+    height:100%;
 }
 
-/* ================= TOP BAR ================= */
+#scene{
+    position:absolute;
+    inset:0;
+}
 
-.top{
-    height:10%;
-    min-height:65px;
+canvas{
+    display:block;
+}
+
+.ui{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    padding:12px;
     display:flex;
-    align-items:center;
     justify-content:space-between;
-    padding:0 18px;
-    background:linear-gradient(180deg,#202b45,#151c30);
-    border-bottom:2px solid #34415d;
-    z-index:10;
+    align-items:center;
+    pointer-events:none;
 }
 
 .logo{
-    display:flex;
-    align-items:center;
-    gap:9px;
-    font-size:20px;
+    padding:10px 14px;
+    border-radius:14px;
+    background:rgba(15,23,42,.82);
+    color:white;
+    font-size:18px;
     font-weight:900;
-    letter-spacing:1px;
 }
 
-.logoIcon{
-    font-size:30px;
-}
-
-.goldBox{
-    display:flex;
-    align-items:center;
-    gap:7px;
-    padding:8px 13px;
-    background:#101727;
-    border:2px solid #d9a928;
-    border-radius:20px;
+.gold{
+    padding:10px 14px;
+    border-radius:14px;
+    background:rgba(15,23,42,.82);
+    color:white;
     font-weight:bold;
 }
-
-.coin{
-    font-size:23px;
-}
-
-/* ================= BATTLE ================= */
-
-.battle{
-    position:relative;
-    height:55%;
-    min-height:300px;
-    overflow:hidden;
-    background:
-        linear-gradient(
-            180deg,
-            #72c8ef 0%,
-            #b9e9fa 57%,
-            #83b93d 57%,
-            #5e9425 100%
-        );
-}
-
-/* güneş */
-
-.sun{
-    position:absolute;
-    width:70px;
-    height:70px;
-    border-radius:50%;
-    background:#ffe58a;
-    top:28px;
-    right:45px;
-    box-shadow:0 0 35px rgba(255,230,130,.7);
-}
-
-/* bulutlar */
-
-.cloud{
-    position:absolute;
-    background:white;
-    opacity:.72;
-    width:75px;
-    height:25px;
-    border-radius:30px;
-}
-
-.cloud:before,
-.cloud:after{
-    content:"";
-    position:absolute;
-    background:white;
-    border-radius:50%;
-}
-
-.cloud:before{
-    width:35px;
-    height:35px;
-    left:12px;
-    top:-17px;
-}
-
-.cloud:after{
-    width:45px;
-    height:45px;
-    right:8px;
-    top:-25px;
-}
-
-.cloud1{
-    top:65px;
-    left:15%;
-}
-
-.cloud2{
-    top:110px;
-    left:57%;
-    transform:scale(.7);
-}
-
-/* dağlar */
-
-.mountains{
-    position:absolute;
-    bottom:43%;
-    width:100%;
-    height:110px;
-    background:
-        linear-gradient(135deg,transparent 45%,#7892a3 46%,#7892a3 60%,transparent 61%),
-        linear-gradient(45deg,transparent 45%,#637c8c 46%,#637c8c 60%,transparent 61%);
-    opacity:.45;
-}
-
-/* yol */
-
-.road{
-    position:absolute;
-    bottom:0;
-    left:0;
-    width:100%;
-    height:25%;
-    background:#c99b65;
-    border-top:5px solid #a87542;
-}
-
-.roadLine{
-    position:absolute;
-    width:100%;
-    top:48%;
-    border-top:4px dashed rgba(255,255,255,.25);
-}
-
-/* ================= CASTLES ================= */
-
-.castle{
-    position:absolute;
-    bottom:18%;
-    width:100px;
-    height:125px;
-    background:linear-gradient(90deg,#6f7787,#a4abb8,#737b8b);
-    border:5px solid #303847;
-    border-radius:3px;
-    box-shadow:0 8px 12px rgba(0,0,0,.35);
-    z-index:3;
-}
-
-.castle:before,
-.castle:after{
-    content:"";
-    position:absolute;
-    top:-38px;
-    width:31px;
-    height:40px;
-    background:#697282;
-    border:5px solid #303847;
-}
-
-.castle:before{
-    left:-5px;
-}
-
-.castle:after{
-    right:-5px;
-}
-
-.player{
-    left:5%;
-}
-
-.enemy{
-    right:5%;
-}
-
-.flag{
-    position:absolute;
-    top:-55px;
-    left:50%;
-    font-size:28px;
-}
-
-.door{
-    position:absolute;
-    bottom:0;
-    left:30px;
-    width:35px;
-    height:58px;
-    background:#49301f;
-    border-radius:20px 20px 0 0;
-    border:3px solid #342217;
-}
-
-.window{
-    position:absolute;
-    width:18px;
-    height:24px;
-    background:#253449;
-    border:3px solid #303847;
-    top:28px;
-    border-radius:10px 10px 0 0;
-}
-
-.window.left{
-    left:14px;
-}
-
-.window.right{
-    right:14px;
-}
-
-/* ================= HEALTH ================= */
-
-.healthWrap{
-    position:absolute;
-    top:-25px;
-    left:-5px;
-    width:100px;
-}
-
-.healthLabel{
-    text-align:center;
-    font-size:10px;
-    font-weight:bold;
-    margin-bottom:3px;
-    text-shadow:1px 1px 2px #000;
-}
-
-.hp{
-    width:100%;
-    height:12px;
-    background:#252525;
-    border:2px solid white;
-    border-radius:8px;
-    overflow:hidden;
-}
-
-.hpFill{
-    width:100%;
-    height:100%;
-    background:linear-gradient(90deg,#16a34a,#4ade80);
-    transition:width .3s;
-}
-
-/* ================= UNITS ================= */
-
-.unit{
-    position:absolute;
-    bottom:21%;
-    left:13%;
-    font-size:38px;
-    z-index:5;
-    transition:transform .15s;
-    filter:drop-shadow(2px 4px 2px rgba(0,0,0,.5));
-}
-
-.unit.attack{
-    animation:walk 1s linear forwards;
-}
-
-@keyframes walk{
-    from{left:13%;}
-    to{left:78%;}
-}
-
-.hit{
-    animation:hit .25s;
-}
-
-@keyframes hit{
-    0%{transform:scale(1);}
-    50%{transform:scale(1.25) rotate(-8deg);}
-    100%{transform:scale(1);}
-}
-
-/* ================= BOTTOM ================= */
 
 .controls{
-    height:35%;
-    background:
-        linear-gradient(180deg,#151d31,#0c1221);
-    padding:12px 12px 10px;
+    position:absolute;
+    bottom:15px;
+    left:0;
+    width:100%;
     display:flex;
-    flex-direction:column;
     justify-content:center;
     gap:10px;
-    border-top:2px solid #303b54;
+    padding:0 10px;
+}
+
+button{
+    border:2px solid rgba(255,255,255,.25);
+    border-radius:16px;
+    background:rgba(20,30,50,.92);
+    color:white;
+    padding:12px 14px;
+    min-width:95px;
+    font-size:15px;
+    font-weight:bold;
+    box-shadow:0 5px 0 rgba(0,0,0,.35);
+}
+
+button:active{
+    transform:translateY(4px);
+    box-shadow:0 1px 0 rgba(0,0,0,.35);
 }
 
 .message{
-    text-align:center;
-    font-size:18px;
-    font-weight:900;
-    min-height:28px;
-}
-
-.units{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:8px;
-}
-
-.unitBtn{
-    position:relative;
-    border:none;
+    position:absolute;
+    top:72px;
+    left:50%;
+    transform:translateX(-50%);
+    padding:9px 16px;
+    border-radius:20px;
+    background:rgba(15,23,42,.75);
     color:white;
-    background:linear-gradient(180deg,#35435e,#252f45);
-    border:2px solid #465571;
-    border-radius:15px;
-    padding:10px 4px;
-    min-height:82px;
-    font-size:15px;
     font-weight:bold;
-    box-shadow:0 5px 0 #111827;
-}
-
-.unitBtn:active{
-    transform:translateY(4px);
-    box-shadow:0 1px 0 #111827;
-}
-
-.unitIcon{
-    display:block;
-    font-size:30px;
-    margin-bottom:3px;
-}
-
-.damage{
-    position:absolute;
-    top:5px;
-    right:7px;
-    font-size:10px;
-    color:#ffd166;
-}
-
-.reset{
-    border:none;
-    border-radius:14px;
-    padding:12px;
-    background:linear-gradient(180deg,#2563eb,#1746ad);
-    color:white;
-    font-size:16px;
-    font-weight:900;
-    box-shadow:0 4px 0 #102b70;
-}
-
-.reset:active{
-    transform:translateY(3px);
-    box-shadow:0 1px 0 #102b70;
-}
-
-/* ================= WIN SCREEN ================= */
-
-.overlay{
-    position:absolute;
-    inset:0;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    background:rgba(5,8,18,.78);
-    z-index:20;
-}
-
-.resultBox{
-    width:85%;
-    max-width:340px;
-    padding:28px 20px;
-    text-align:center;
-    border-radius:22px;
-    background:linear-gradient(180deg,#263653,#151d30);
-    border:2px solid #63779c;
-    box-shadow:0 15px 40px rgba(0,0,0,.6);
-}
-
-.resultIcon{
-    font-size:65px;
-    margin-bottom:10px;
-}
-
-.resultTitle{
-    font-size:28px;
-    font-weight:900;
-    margin-bottom:8px;
-}
-
-.resultText{
-    color:#cbd5e1;
-    margin-bottom:18px;
-}
-
-/* küçük ekran */
-
-@media(max-height:650px){
-    .battle{height:52%;}
-    .controls{height:38%;}
-    .castle{
-        bottom:15%;
-        transform:scale(.85);
-        transform-origin:bottom;
-    }
-    .unit{
-        bottom:19%;
-    }
+    pointer-events:none;
+    white-space:nowrap;
 }
 </style>
 </head>
@@ -455,320 +114,603 @@ body{
 
 <div id="game">
 
-    <div class="top">
-        <div class="logo">
-            <span class="logoIcon">🏰</span>
-            CASTLE CHAOS
-        </div>
+    <div id="scene"></div>
 
-        <div class="goldBox">
-            <span class="coin">🪙</span>
-            <span id="gold">100</span>
-        </div>
+    <div class="ui">
+        <div class="logo">🏰 CASTLE CHAOS</div>
+        <div class="gold">🪙 <span id="gold">100</span></div>
     </div>
 
-    <div class="battle">
-
-        <div class="sun"></div>
-
-        <div class="cloud cloud1"></div>
-        <div class="cloud cloud2"></div>
-
-        <div class="mountains"></div>
-
-        <div class="road">
-            <div class="roadLine"></div>
-        </div>
-
-        <!-- OYUNCU KALESİ -->
-
-        <div class="castle player">
-
-            <div class="healthWrap">
-                <div class="healthLabel">SEN</div>
-                <div class="hp">
-                    <div class="hpFill" id="playerHP"></div>
-                </div>
-            </div>
-
-            <div class="flag">🚩</div>
-
-            <div class="window left"></div>
-            <div class="window right"></div>
-
-            <div class="door"></div>
-
-        </div>
-
-        <!-- DÜŞMAN KALESİ -->
-
-        <div class="castle enemy">
-
-            <div class="healthWrap">
-                <div class="healthLabel">DÜŞMAN</div>
-                <div class="hp">
-                    <div class="hpFill" id="enemyHP"></div>
-                </div>
-            </div>
-
-            <div class="flag">🏴</div>
-
-            <div class="window left"></div>
-            <div class="window right"></div>
-
-            <div class="door"></div>
-
-        </div>
-
-        <div class="unit" id="unit">⚔️</div>
-
-        <div class="overlay" id="overlay">
-
-            <div class="resultBox">
-
-                <div class="resultIcon" id="resultIcon">🏆</div>
-
-                <div class="resultTitle" id="resultTitle">
-                    ZAFER!
-                </div>
-
-                <div class="resultText" id="resultText">
-                    Düşman kalesini yıktın!
-                </div>
-
-                <button class="reset" onclick="resetGame()">
-                    ⚔️ YENİ SAVAŞ
-                </button>
-
-            </div>
-
-        </div>
-
+    <div class="message" id="message">
+        Birlik seç ve saldır!
     </div>
 
     <div class="controls">
-
-        <div class="message" id="message">
-            Düşman kalesini yık!
-        </div>
-
-        <div class="units">
-
-            <button class="unitBtn" onclick="attack('knight')">
-                <span class="damage">10 HASAR</span>
-                <span class="unitIcon">⚔️</span>
-                Şövalye
-            </button>
-
-            <button class="unitBtn" onclick="attack('archer')">
-                <span class="damage">7 HASAR</span>
-                <span class="unitIcon">🏹</span>
-                Okçu
-            </button>
-
-            <button class="unitBtn" onclick="attack('giant')">
-                <span class="damage">20 HASAR</span>
-                <span class="unitIcon">🔨</span>
-                Dev
-            </button>
-
-        </div>
-
-        <button class="reset" onclick="resetGame()">
-            🔄 Yeni Savaş
-        </button>
-
+        <button onclick="sendKnight()">⚔️ ŞÖVALYE</button>
+        <button onclick="sendArcher()">🏹 OKÇU</button>
+        <button onclick="sendGiant()">🔨 DEV</button>
     </div>
 
 </div>
 
-<script>
+<script type="module">
 
-let enemyHealth = 100;
-let playerHealth = 100;
-let gold = 100;
-let gameOver = false;
+import * as THREE from
+'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+
+/* =========================
+   SAHNE
+========================= */
+
+const scene = new THREE.Scene();
+
+scene.background = new THREE.Color(0x87ceeb);
+
+scene.fog = new THREE.Fog(
+    0x87ceeb,
+    25,
+    90
+);
+
+
+/* =========================
+   KAMERA
+========================= */
+
+const camera = new THREE.PerspectiveCamera(
+    55,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    200
+);
+
+camera.position.set(
+    0,
+    14,
+    25
+);
+
+camera.lookAt(
+    0,
+    3,
+    0
+);
+
+
+/* =========================
+   RENDERER
+========================= */
+
+const renderer =
+    new THREE.WebGLRenderer({
+        antialias:true
+    });
+
+renderer.setPixelRatio(
+    Math.min(window.devicePixelRatio,2)
+);
+
+renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+);
+
+renderer.shadowMap.enabled = true;
+
+document
+    .getElementById("scene")
+    .appendChild(renderer.domElement);
+
+
+/* =========================
+   IŞIK
+========================= */
+
+const ambient =
+    new THREE.HemisphereLight(
+        0xffffff,
+        0x557755,
+        2
+    );
+
+scene.add(ambient);
+
+const sun =
+    new THREE.DirectionalLight(
+        0xffffff,
+        3
+    );
+
+sun.position.set(
+    -10,
+    20,
+    10
+);
+
+sun.castShadow = true;
+
+scene.add(sun);
+
+
+/* =========================
+   ZEMİN
+========================= */
+
+const groundGeometry =
+    new THREE.PlaneGeometry(
+        80,
+        50
+    );
+
+const groundMaterial =
+    new THREE.MeshStandardMaterial({
+        color:0x4f8f32
+    });
+
+const ground =
+    new THREE.Mesh(
+        groundGeometry,
+        groundMaterial
+    );
+
+ground.rotation.x =
+    -Math.PI / 2;
+
+ground.receiveShadow = true;
+
+scene.add(ground);
+
+
+/* =========================
+   YOL
+========================= */
+
+const roadGeometry =
+    new THREE.PlaneGeometry(
+        9,
+        50
+    );
+
+const roadMaterial =
+    new THREE.MeshStandardMaterial({
+        color:0xb88a5a
+    });
+
+const road =
+    new THREE.Mesh(
+        roadGeometry,
+        roadMaterial
+    );
+
+road.rotation.x =
+    -Math.PI / 2;
+
+road.position.y =
+    0.02;
+
+scene.add(road);
+
+
+/* =========================
+   KALE OLUŞTUR
+========================= */
+
+function createCastle(x,color){
+
+    const castle =
+        new THREE.Group();
+
+    castle.position.x = x;
+
+    /* ana bina */
+
+    const body =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                5,
+                6,
+                4
+            ),
+            new THREE.MeshStandardMaterial({
+                color:color
+            })
+        );
+
+    body.position.y = 3;
+
+    body.castShadow = true;
+
+    castle.add(body);
+
+
+    /* kuleler */
+
+    [-2.7,2.7].forEach(
+        towerX => {
+
+            const tower =
+                new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        1.7,
+                        8,
+                        2
+                    ),
+                    new THREE.MeshStandardMaterial({
+                        color:color
+                    })
+                );
+
+            tower.position.set(
+                towerX,
+                4,
+                0
+            );
+
+            tower.castShadow = true;
+
+            castle.add(tower);
+
+
+            /* kule tepesi */
+
+            const roof =
+                new THREE.Mesh(
+                    new THREE.ConeGeometry(
+                        1.35,
+                        2.2,
+                        4
+                    ),
+                    new THREE.MeshStandardMaterial({
+                        color:0x432818
+                    })
+                );
+
+            roof.position.set(
+                towerX,
+                9,
+                0
+            );
+
+            roof.rotation.y =
+                Math.PI / 4;
+
+            roof.castShadow = true;
+
+            castle.add(roof);
+
+        }
+    );
+
+
+    /* kapı */
+
+    const door =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                1.5,
+                2.5,
+                .25
+            ),
+            new THREE.MeshStandardMaterial({
+                color:0x3b2415
+            })
+        );
+
+    door.position.set(
+        0,
+        1.25,
+        -2.05
+    );
+
+    castle.add(door);
+
+
+    /* bayrak */
+
+    const pole =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                .05,
+                .05,
+                3
+            ),
+            new THREE.MeshStandardMaterial({
+                color:0x4b3621
+            })
+        );
+
+    pole.position.set(
+        0,
+        8,
+        0
+    );
+
+    castle.add(pole);
+
+
+    const flag =
+        new THREE.Mesh(
+            new THREE.PlaneGeometry(
+                1.6,
+                .9
+            ),
+            new THREE.MeshStandardMaterial({
+                color:color,
+                side:THREE.DoubleSide
+            })
+        );
+
+    flag.position.set(
+        .75,
+        8.8,
+        0
+    );
+
+    castle.add(flag);
+
+
+    scene.add(castle);
+
+    return castle;
+}
+
+
+/* =========================
+   KALELER
+========================= */
+
+const playerCastle =
+    createCastle(
+        -16,
+        0x4169e1
+    );
+
+const enemyCastle =
+    createCastle(
+        16,
+        0xb83232
+    );
+
+
+/* =========================
+   KARAKTER
+========================= */
+
+function createKnight(){
+
+    const group =
+        new THREE.Group();
+
+    const body =
+        new THREE.Mesh(
+            new THREE.CapsuleGeometry(
+                .65,
+                1.3,
+                4,
+                8
+            ),
+            new THREE.MeshStandardMaterial({
+                color:0x355c9b
+            })
+        );
+
+    body.position.y = 1.5;
+
+    body.castShadow = true;
+
+    group.add(body);
+
+
+    const helmet =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                .7,
+                12,
+                8
+            ),
+            new THREE.MeshStandardMaterial({
+                color:0xbfc7d5,
+                metalness:.5
+            })
+        );
+
+    helmet.position.y = 2.8;
+
+    helmet.castShadow = true;
+
+    group.add(helmet);
+
+
+    const sword =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .18,
+                2,
+                .3
+            ),
+            new THREE.MeshStandardMaterial({
+                color:0xdce6f2,
+                metalness:.8
+            })
+        );
+
+    sword.position.set(
+        .9,
+        1.6,
+        0
+    );
+
+    sword.rotation.z =
+        -0.5;
+
+    sword.castShadow = true;
+
+    group.add(sword);
+
+
+    group.scale.set(
+        1.1,
+        1.1,
+        1.1
+    );
+
+    return group;
+}
+
+
+/* =========================
+   ŞÖVALYE
+========================= */
+
+let knight = null;
 let attacking = false;
 
-const stats = {
-    knight:{
-        damage:10,
-        symbol:"⚔️"
-    },
-    archer:{
-        damage:7,
-        symbol:"🏹"
-    },
-    giant:{
-        damage:20,
-        symbol:"🔨"
-    }
-};
+function sendKnight(){
 
-function attack(type){
-
-    if(gameOver || attacking) return;
+    if(attacking) return;
 
     attacking = true;
 
-    const unit = document.getElementById("unit");
-    const data = stats[type];
+    document.getElementById(
+        "message"
+    ).innerText =
+        "⚔️ Şövalye saldırıyor!";
 
-    unit.innerText = data.symbol;
+    knight =
+        createKnight();
 
-    unit.classList.remove("attack");
-    void unit.offsetWidth;
-    unit.classList.add("attack");
+    knight.position.set(
+        -11,
+        0,
+        0
+    );
 
-    document.getElementById("message").innerText =
-        data.symbol + " saldırıyor!";
+    scene.add(knight);
+
+    animateKnight();
+}
+
+
+function animateKnight(){
+
+    if(!knight) return;
+
+    knight.position.x += .16;
+
+    knight.rotation.y =
+        Math.sin(
+            Date.now() * .01
+        ) * .05;
+
+    if(
+        knight.position.x >= 12
+    ){
+
+        enemyHit();
+
+        scene.remove(knight);
+
+        knight = null;
+
+        attacking = false;
+
+        return;
+    }
+
+    requestAnimationFrame(
+        animateKnight
+    );
+}
+
+
+/* =========================
+   KALE VURUŞU
+========================= */
+
+function enemyHit(){
+
+    enemyCastle.scale.set(
+        1.08,
+        .94,
+        1.08
+    );
 
     setTimeout(()=>{
+        enemyCastle.scale.set(
+            1,
+            1,
+            1
+        );
+    },180);
 
-        enemyHealth -= data.damage;
-
-        if(enemyHealth < 0){
-            enemyHealth = 0;
-        }
-
-        updateHealth();
-
-        unit.classList.remove("attack");
-        unit.style.left = "13%";
-
-        document.querySelector(".enemy").classList.add("hit");
-
-        setTimeout(()=>{
-            document.querySelector(".enemy").classList.remove("hit");
-        },250);
-
-        if(enemyHealth <= 0){
-
-            win();
-
-        }else{
-
-            setTimeout(enemyAttack,500);
-
-        }
-
-    },1000);
+    document.getElementById(
+        "message"
+    ).innerText =
+        "💥 Kale vuruldu!";
 }
 
-function enemyAttack(){
 
-    if(gameOver) return;
+/* =========================
+   DİĞER BİRLİKLER
+========================= */
 
-    document.getElementById("message").innerText =
-        "💥 Düşman saldırıyor!";
+function sendArcher(){
 
-    setTimeout(()=>{
-
-        playerHealth -= 8;
-
-        if(playerHealth < 0){
-            playerHealth = 0;
-        }
-
-        updateHealth();
-
-        document.querySelector(".player").classList.add("hit");
-
-        setTimeout(()=>{
-            document.querySelector(".player").classList.remove("hit");
-        },250);
-
-        if(playerHealth <= 0){
-
-            lose();
-
-        }else{
-
-            document.getElementById("message").innerText =
-                "⚔️ Sıra sende!";
-
-            attacking = false;
-        }
-
-    },500);
+    document.getElementById(
+        "message"
+    ).innerText =
+        "🏹 Okçu sistemi geliyor...";
 }
 
-function updateHealth(){
+function sendGiant(){
 
-    document.getElementById("enemyHP").style.width =
-        enemyHealth + "%";
-
-    document.getElementById("playerHP").style.width =
-        playerHealth + "%";
+    document.getElementById(
+        "message"
+    ).innerText =
+        "🔨 Dev sistemi geliyor...";
 }
 
-function win(){
 
-    gameOver = true;
-    attacking = false;
+/* =========================
+   ANİMASYON
+========================= */
 
-    gold += 50;
+function animate(){
 
-    document.getElementById("gold").innerText = gold;
+    requestAnimationFrame(
+        animate
+    );
 
-    document.getElementById("message").innerText =
-        "🏆 ZAFER! +50 ALTIN";
-
-    document.getElementById("resultIcon").innerText = "🏆";
-
-    document.getElementById("resultTitle").innerText =
-        "ZAFER!";
-
-    document.getElementById("resultText").innerText =
-        "Düşman kalesini yıktın! +50 🪙";
-
-    document.getElementById("overlay").style.display =
-        "flex";
+    renderer.render(
+        scene,
+        camera
+    );
 }
 
-function lose(){
+animate();
 
-    gameOver = true;
-    attacking = false;
 
-    document.getElementById("message").innerText =
-        "💀 KALE YIKILDI!";
+/* =========================
+   EKRAN BOYUTU
+========================= */
 
-    document.getElementById("resultIcon").innerText =
-        "💀";
+window.addEventListener(
+    "resize",
+    ()=>{
 
-    document.getElementById("resultTitle").innerText =
-        "YENİLDİN!";
+        camera.aspect =
+            window.innerWidth /
+            window.innerHeight;
 
-    document.getElementById("resultText").innerText =
-        "Kale savunmanı güçlendir ve tekrar saldır.";
+        camera.updateProjectionMatrix();
 
-    document.getElementById("overlay").style.display =
-        "flex";
-}
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
 
-function resetGame(){
-
-    enemyHealth = 100;
-    playerHealth = 100;
-    gameOver = false;
-    attacking = false;
-
-    document.getElementById("overlay").style.display =
-        "none";
-
-    document.getElementById("message").innerText =
-        "Düşman kalesini yık!";
-
-    const unit = document.getElementById("unit");
-
-    unit.classList.remove("attack");
-    unit.style.left = "13%";
-
-    updateHealth();
-}
-
-updateHealth();
+    }
+);
 
 </script>
 
